@@ -1,0 +1,13 @@
+{
+  "name": "drupal/l10n_glossary",
+  "type": "drupal-module",
+  "license": "GPL",
+  "authors": [
+    {
+      "name": "Stefan Auditor",
+      "email": "stefan.auditor@erdfisch.de"
+    }
+  ],
+  "require": {
+  }
+}

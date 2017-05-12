@@ -1,0 +1,7 @@
+name = Localization Glossary
+description = Localization Glossary
+package = "Localization server"
+dependencies[] = l10n_server
+dependencies[] = l10n_community
+core = 7.x
+php = 5.6

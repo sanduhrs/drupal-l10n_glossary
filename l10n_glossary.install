@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Provides installation routines.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function l10n_glossary_schema() {
+  $schema['cache_l10n_glossary'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_l10n_glossary']['description'] = 'Cache table for the l10n_glossary module to store already calculated information.';
+  return $schema;
+}

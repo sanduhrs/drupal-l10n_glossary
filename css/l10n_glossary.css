@@ -1,0 +1,9 @@
+.l10n-glossary-highlight-translation {
+  background-color: coral !important;
+}
+.l10n-glossary-highlight-lemma-used {
+  background-color: greenyellow !important;
+}
+.l10n-glossary-highlight-lemma-unused {
+  background-color: firebrick !important;
+}

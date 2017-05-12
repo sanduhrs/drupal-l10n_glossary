@@ -1,0 +1,287 @@
+<?php
+
+/**
+ * @file
+ * Glossary add-ons for l10n modules suite.
+ */
+
+/**
+ * Implements hook_block_menu().
+ */
+function l10n_glossary_menu() {
+  $items['l10n-glossary'] = array(
+    'page callback' => 'l10n_glossary_json_callback',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['translate/languages/%l10n_glossary_group/glossary'] = array(
+    'title' => 'Glossary',
+    'page callback' => 'l10n_glossary_overview_callback',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function l10n_glossary_block_info() {
+  $blocks['glossary'] = array(
+    'info' => t('Glossary suggestion'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function l10n_glossary_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'glossary':
+      $block['subject'] = t('Glossary');
+      $block['content'] = array(
+        '#markup' => '<div id="l10n-glossary"></div>',
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'l10n_glossary') . '/css/l10n_glossary.css',
+          ),
+          'js' => array(
+            drupal_get_path('module', 'l10n_glossary') . '/js/l10n_glossary.js',
+          ),
+        ),
+      );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Glossary menu callback.
+ *
+ * @param int $sid
+ *   The string id.
+ * @param int $gid
+ *   The group id.
+ */
+function l10n_glossary_json_callback($sid, $gid = 1) {
+  $lemmata = $usage = array();
+  module_load_include('inc', 'l10n_community', 'translate');
+
+  // Load the string.
+  $strings = l10n_glossary_get_string($sid);
+  foreach ($strings as $string) {
+    $lemmata = $lemmata + l10n_glossary_get_lemmata($string);
+  }
+
+  $translations = l10n_glossary_get_translations($sid);
+  $usage = $usage + l10n_glossary_get_lemmata_usage($translations, $lemmata);
+
+  header('Content-Type: application/json');
+  print json_encode(array(
+    'lemmata' => $lemmata,
+    'usage' => $usage,
+  ));
+  drupal_exit();
+}
+
+/**
+ * Glossary overview; Menu callback.
+ *
+ * @param int $node
+ *   The group node.
+ * @param string $char
+ *   The current glossary character.
+ *
+ * @return string
+ *   The page markup to render.
+ */
+function l10n_glossary_overview_callback($node, $char = 'A') {
+  return 'Hello world!';
+}
+
+/**
+ * Get string.
+ *
+ * @param int $sid
+ *   The string id.
+ *
+ * @return array
+ *   An array of strings, or an empty array if there is no result set.
+ */
+function l10n_glossary_get_string($sid) {
+  $string = db_query(
+    'SELECT * FROM {l10n_server_string} WHERE sid = :sid',
+    array(':sid' => $sid)
+  )->fetchObject();
+  return l10n_community_unpack_string($string->value);
+}
+
+/**
+ * Get translations.
+ *
+ * @param int $sid
+ *   The string id to get translations for.
+ *
+ * @return mixed
+ *   An associative array, or an empty array if there is no result set.
+ */
+function l10n_glossary_get_translations($sid) {
+  return db_query(
+    'SELECT * FROM {l10n_server_translation} WHERE sid = :sid AND is_active = 1',
+    array(':sid' => $sid)
+  )->fetchAllAssoc('tid');
+}
+
+/**
+ * Get lemmata from string.
+ *
+ * @param string $string
+ *   The string in which to search for lemmata.
+ *
+ * @return array
+ *   An array of strings, or an empty array if there is no result set.
+ */
+function l10n_glossary_get_lemmata($string) {
+  // Check for single word glossary lemmata.
+  $lemmata = l10n_glossary_get_single_word_lemmata($string);
+  // Check for multi word glossary lemmata.
+  $lemmata = $lemmata + l10n_glossary_get_multi_word_lemmata($string);
+  return $lemmata;
+}
+
+/**
+ * Get single word lemmata.
+ *
+ * @param string $string
+ *   The string to search lemmata for.
+ *
+ * @return array
+ *   An array of lemmata.
+ */
+function l10n_glossary_get_single_word_lemmata($string) {
+  $cid = 'single-' . hash('sha256', $string);
+  $cache = cache_get($cid, 'cache_l10n_glossary');
+  if ($cache && REQUEST_TIME < $cache->expire) {
+    $data = $cache->data;
+  }
+  else {
+    $strings = explode(' ', $string);
+    $query = db_query(
+      'SELECT nid as id, field_lemma_source_value as source, title as lemma
+         FROM node
+         LEFT JOIN field_data_field_lemma_source ON nid = entity_id 
+         WHERE entity_type = :type 
+           AND bundle = :bundle
+           AND field_lemma_source_value IN (:strings)
+           AND status = 1',
+      array(
+        ':type' => 'node',
+        ':bundle' => 'lemma',
+        ':strings' => $strings,
+      )
+    );
+    $data = $query->fetchAllAssoc('id');
+    if ($data) {
+      cache_set($cid, $data, 'cache_l10n_glossary', CACHE_PERMANENT);
+    }
+  }
+  return $data;
+}
+
+/**
+ * Get multi word lemmata.
+ *
+ * @param string $string
+ *   The string to search lemmata for.
+ *
+ * @return array
+ *   An array of lemmata.
+ */
+function l10n_glossary_get_multi_word_lemmata($string) {
+  $cid = 'multi-' . hash('sha256', $string);
+  $cache = cache_get($cid, 'cache_l10n_glossary');
+  if ($cache && REQUEST_TIME < $cache->expire) {
+    $data = $cache->data;
+  }
+  else {
+    $query = db_query(
+      'SELECT nid as id, field_lemma_source_value as source, title as lemma
+         FROM node
+         LEFT JOIN field_data_field_lemma_source ON nid = entity_id 
+         WHERE entity_type = :type 
+           AND bundle = :bundle
+           AND field_lemma_source_value LIKE \'% %\'
+           AND status = 1',
+      array(
+        ':type' => 'node',
+        ':bundle' => 'lemma',
+      )
+    );
+    $data = array();
+    $multi_word_lemmata = $query->fetchAllAssoc('id');
+    foreach ($multi_word_lemmata as $needle) {
+      if (strpos(strtolower($string), strtolower($needle->source)) !== FALSE) {
+        $data[$needle->id] = $needle;
+      }
+    }
+    if ($data) {
+      cache_set($cid, $data, 'cache_l10n_glossary', CACHE_PERMANENT);
+    }
+  }
+  return $data;
+}
+
+/**
+ * Get lemmata usage in string.
+ *
+ * @param array $translations
+ *   An array of translation strings.
+ * @param array $lemmata
+ *   An array of lemma strings.
+ *
+ * @return array
+ *   An associative array of usage information.
+ */
+function l10n_glossary_get_lemmata_usage($translations, $lemmata) {
+  $usage = array();
+  foreach ($translations as $string) {
+    $count = 0;
+    $used = $unused = array();
+    foreach ($lemmata as $needle) {
+      if (strpos(strtolower($string->translation), strtolower($needle->lemma)) !== FALSE) {
+        $used[] = $needle->id;
+        $usage[$string->tid][$needle->id] = TRUE;
+        $count++;
+      }
+      else {
+        $usage[$string->tid][$needle->id] = FALSE;
+        $unused[] = $needle->id;
+      }
+      $usage[$string->tid]['percentage'] = round($count / count($lemmata) * 100, 0);
+    }
+    $usage[$string->tid]['used'] = implode(',', $used);
+    $usage[$string->tid]['unused'] = implode(',', $unused);
+  }
+  return $usage;
+}
+
+/**
+ * Load a group node by language.
+ *
+ * @param string $language
+ *   A language string, e.g. 'en', 'fr', 'de'.
+ *
+ * @return bool|mixed
+ *   A node object or FALSE.
+ */
+function l10n_glossary_group_load($language) {
+  $records = db_query("SELECT n.nid FROM {node} n INNER JOIN {l10n_groups_group} l WHERE l.language = :language", array(':language' => $language))
+    ->fetchAll();
+  $record = array_shift($records);
+  return node_load($record->nid);
+}
