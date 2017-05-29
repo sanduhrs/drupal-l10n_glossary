@@ -9,9 +9,7 @@ use Drupal\views\Plugin\views\cache\CachePluginBase;
 use Drupal\views\ViewExecutable;
 
 /**
- * @param \Drupal\views\ViewExecutable $view
- * @param $output
- * @param \Drupal\views\Plugin\views\cache\CachePluginBase $cache
+ * Implements hook_views_post_render().
  */
 function l10n_glossary_views_post_render(ViewExecutable $view, &$output, CachePluginBase $cache) {
   if ($view->storage->id() !== 'l10n_glossary') {

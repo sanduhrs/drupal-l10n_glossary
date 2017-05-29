@@ -20,7 +20,7 @@ interface GlossaryInterface {
   /**
    * Get glossary terms for string.
    *
-   * @param $string
+   * @param string $string
    *   The string to get the glossary terms for.
    *
    * @return array
@@ -39,6 +39,6 @@ interface GlossaryInterface {
    * @return array
    *   An array of term usage percentages.
    */
-  public function getTermUsage($string, $terms);
+  public function getTermUsage($string, array $terms);
 
 }

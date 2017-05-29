@@ -9,25 +9,25 @@
  * Implements hook_drush_command().
  */
 function l10n_glossary_drush_command() {
-  $items = array();
-  $items['l10n-glossary-import'] = array(
+  $items = [];
+  $items['l10n-glossary-import'] = [
     'description' => "Import glossary terms.",
-    'arguments' => array(
+    'arguments' => [
       'langcode' => 'The langcode, e.g. en, de, fr',
-    ),
-    'examples' => array(
+    ],
+    'examples' => [
       'drush lgi',
-    ),
-    'aliases' => array('lgi'),
-  );
+    ],
+    'aliases' => ['lgi'],
+  ];
   return $items;
 }
 
 /**
  * Glossary import command.
  */
-function drush_l10n_glossary_import($langcode = 'de') {
-  $rows = array();
+function drush_l10n_glossary_import($langcode = 'en') {
+  $rows = [];
   $filename = __DIR__ . '/data/' . $langcode . '.csv';
 
   // Check for file existence.

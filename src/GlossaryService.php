@@ -53,9 +53,13 @@ class GlossaryService implements GlossaryInterface {
    * GlossaryService constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config
+   *   The service coniiguration.
    * @param \Drupal\Core\Cache\DatabaseBackend $cache
+   *   The service cache.
    * @param \Drupal\Core\Database\Connection $connection
+   *   The database connection.
    * @param \GuzzleHttp\Client $http_client
+   *   The HTTP client.
    */
   public function __construct(
       ConfigFactoryInterface $config,
@@ -89,8 +93,10 @@ class GlossaryService implements GlossaryInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @todo
    */
-  public function getTermUsage($string, $terms) {
+  public function getTermUsage($string, array $terms) {
     $usage = [];
     foreach ($terms as $index => $needle) {
       if (strpos(strtolower($string), strtolower($needle->title)) === FALSE) {
@@ -103,7 +109,7 @@ class GlossaryService implements GlossaryInterface {
   /**
    * Get single word glossary terms from a string.
    *
-   * @param $string
+   * @param string $string
    *   The original string to check for terms.
    *
    * @return array
@@ -134,7 +140,7 @@ class GlossaryService implements GlossaryInterface {
   /**
    * Get mutli word glossary terms from a string.
    *
-   * @param $string
+   * @param string $string
    *   The original string to check for terms.
    *
    * @return array
