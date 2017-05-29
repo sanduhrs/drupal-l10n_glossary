@@ -1,0 +1,7 @@
+l10n_glossary.default_controller_glossary:
+  path: 'glossary-terms'
+  defaults:
+    _controller: '\Drupal\l10n_glossary\Controller\DefaultController::glossary'
+    _title: 'Glossary'
+  requirements:
+    _permission: 'access content'

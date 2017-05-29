@@ -1,0 +1,44 @@
+uuid: 254aa3bc-0a1f-4b95-983d-871a1d7870cd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.term.body
+    - field.field.node.term.field_translation
+    - field.field.node.term.field_type
+    - node.type.term
+  module:
+    - options
+    - text
+    - user
+id: node.term.default
+targetEntityType: node
+bundle: term
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 101
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  field_translation:
+    weight: 102
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_type:
+    weight: 103
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: list_default
+    region: content
+  links:
+    weight: 100
+    region: content
+hidden: {  }

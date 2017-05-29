@@ -1,0 +1,11 @@
+name: 'L10n Glossary'
+type: module
+description: 'My Awesome Module'
+core: 8.x
+package: Custom
+mtime: 1495114759
+dependencies:
+  - node
+  - user
+version: null
+php: 5.5.9

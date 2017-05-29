@@ -1,0 +1,7 @@
+table:
+  version: 0.0.1
+  js:
+    js/l10n_table.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal

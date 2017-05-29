@@ -1,0 +1,10 @@
+services:
+  cache.glossary:
+    class: Drupal\Core\Cache\CacheBackendInterface
+    tags:
+      - { name: cache.bin }
+    factory: cache_factory:get
+    arguments: [glossary]
+  l10n_glossary.glossary:
+    class: Drupal\l10n_glossary\GlossaryService
+    arguments: ['@config.factory', '@cache.glossary', '@database', '@http_client']
